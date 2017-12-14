@@ -1637,7 +1637,7 @@ static const struct file_operations iio_buffer_fileops = {
 	.compat_ioctl = iio_ioctl,
 };
 
-static int iio_check_unique_scan_index(struct iio_dev *indio_dev)
+/*static int iio_check_unique_scan_index(struct iio_dev *indio_dev)
 {
 	int i, j;
 	const struct iio_chan_spec *channels = indio_dev->channels;
@@ -1659,7 +1659,7 @@ static int iio_check_unique_scan_index(struct iio_dev *indio_dev)
 
 	return 0;
 }
-
+*/
 static const struct iio_buffer_setup_ops noop_ring_setup_ops;
 
 int __iio_device_register(struct iio_dev *indio_dev, struct module *this_mod)
@@ -1671,9 +1671,9 @@ int __iio_device_register(struct iio_dev *indio_dev, struct module *this_mod)
 	if (!indio_dev->dev.of_node && indio_dev->dev.parent)
 		indio_dev->dev.of_node = indio_dev->dev.parent->of_node;
 
-	ret = iio_check_unique_scan_index(indio_dev);
-	if (ret < 0)
-		return ret;
+//	ret = iio_check_unique_scan_index(indio_dev);
+//	if (ret < 0)
+//		return ret;
 
 	/* configure elements for the chrdev */
 	indio_dev->dev.devt = MKDEV(MAJOR(iio_devt), indio_dev->id);

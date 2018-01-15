@@ -1674,9 +1674,9 @@ int iio_device_register(struct iio_dev *indio_dev)
 	if (!indio_dev->dev.of_node && indio_dev->dev.parent)
 		indio_dev->dev.of_node = indio_dev->dev.parent->of_node;
 
-	ret = iio_check_unique_scan_index(indio_dev);
-	if (ret < 0)
-		return ret;
+//	ret = iio_check_unique_scan_index(indio_dev);
+//	if (ret < 0)
+//		return ret;
 
 	/* configure elements for the chrdev */
 	indio_dev->dev.devt = MKDEV(MAJOR(iio_devt), indio_dev->id);

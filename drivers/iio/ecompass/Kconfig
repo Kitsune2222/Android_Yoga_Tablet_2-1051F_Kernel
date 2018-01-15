@@ -1,0 +1,21 @@
+#
+# E-Compass sensors
+#
+# When adding new entries keep the list in alphabetical order
+
+menu "E-Compass sensors"
+
+config SENSOR_LSM303D
+       tristate  "ST LSM303D accel+magn sensor"
+       depends on I2C
+	   	select IIO_BUFFER
+		select IIO_TRIGGERED_BUFFER
+		select IIO_KFIFO_BUF
+       default y
+       help
+          A e-compass sensor driver, support most of sensors which
+          based on i2c and iio interface. it will instantiate
+          i2c drivers accroding to user config.
+          Say y here to enable.
+
+endmenu

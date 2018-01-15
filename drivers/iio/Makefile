@@ -21,6 +21,7 @@ obj-y += common/
 obj-y += counter/
 obj-y += dac/
 obj-y += dummy/
+obj-y += ecompass/
 obj-y += gyro/
 obj-y += frequency/
 obj-y += health/

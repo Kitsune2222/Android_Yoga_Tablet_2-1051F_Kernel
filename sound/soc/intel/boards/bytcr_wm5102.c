@@ -94,6 +94,62 @@ static void log_quirks(struct device *dev)
 		dev_info(dev, "quirk MCLK_25MHZ enabled");
 }
 
+static int byt_wm5102_prepare_and_enable_pll1(struct snd_soc_dai * codec_dai,
+											 int rate)
+{
+	struct snd_soc_codec *wm5102_codec = codec_dai->codec;
+	int ret;
+	int sr_mult = (rate % 4000 == 0) ? (WM5102_MAX_SYSCLK_1/rate) : (WM5102_MAX_SYSCLK_2/rate);
+	
+	pr_info("Fennec: %s - start", __func__);
+	
+	/*reset FLL1*/
+	snd_soc_codec_set_pll(wm5102_codec, WM5102_FLL1_REFCLK,
+						  ARIZONA_FLL_SRC_NONE,
+						  0, 0);
+	
+	snd_soc_codec_set_pll(wm5102_codec, WM5102_FLL1,
+						  ARIZONA_FLL_SRC_NONE,
+						  0, 0);
+	
+	/* Configure the PLL before selecting it */
+	ret = snd_soc_codec_set_pll(wm5102_codec, WM5102_FLL1,
+								ARIZONA_CLK_SRC_MCLK1,
+								25000000,
+								rate * sr_mult);
+	if (ret < 0) {
+		dev_err(wm5102_codec->dev, "Can't set PLL: %d\n", ret);
+		return ret;
+	}
+	
+	ret = snd_soc_codec_set_sysclk(wm5102_codec,
+								   ARIZONA_CLK_SYSCLK,
+								   ARIZONA_CLK_SRC_FLL1,
+								   rate * sr_mult,
+								   SND_SOC_CLOCK_IN);
+	if (ret != 0) {
+		dev_err(wm5102_codec->dev, "Can't set ASYNCCLK: %d\n", ret);
+		return ret;
+	}
+	
+	ret = snd_soc_codec_set_sysclk(wm5102_codec,
+								   ARIZONA_CLK_OPCLK, 0,
+								   rate * sr_mult,
+								   SND_SOC_CLOCK_OUT);
+	if (ret != 0) {
+		dev_err(wm5102_codec->dev, "Can't set OPCLK: %d\n", ret);
+		return ret;
+	}
+	
+	ret = snd_soc_dai_set_sysclk(codec_dai, ARIZONA_CLK_SYSCLK,
+								   rate * 512, SND_SOC_CLOCK_IN);
+	if (ret < 0) {
+		dev_err(codec_dai->codec->dev, "Can't set clock: %d\n", ret);
+		return ret;
+	}
+	
+	return 0;
+}
 
 #define BYT_CODEC_DAI1	"wm5102-aif1"
 #define BYT_CODEC_DAI2	"wm5102-aif2"
@@ -139,9 +195,7 @@ static int platform_clock_control(struct snd_soc_dapm_widget *w,
 				return ret;
 			}
 		}
-		ret = snd_soc_dai_set_sysclk(codec_dai, ARIZONA_CLK_SYSCLK,
-					     48000 * 512,
-					     SND_SOC_CLOCK_IN);
+		ret = byt_wm5102_prepare_and_enable_pll1(codec_dai, 48000);
 	} else {
 		/*
 		 * Set codec clock source to internal clock before
@@ -273,62 +327,9 @@ static int byt_wm5102_aif1_hw_params(struct snd_pcm_substream *substream,
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
-	struct snd_soc_codec *wm5102_codec = codec_dai->codec;
 	int ret;
-
-	int sr = params_rate(params);
-	int sr_mult = (params_rate(params) % 4000 == 0) ? (WM5102_MAX_SYSCLK_1/params_rate(params)) : (WM5102_MAX_SYSCLK_2/params_rate(params));
-
-
-	ret = snd_soc_dai_set_sysclk(codec_dai, ARIZONA_CLK_SYSCLK,
-				     params_rate(params) * 512,
-				     SND_SOC_CLOCK_IN);
-
-	if (ret < 0) {
-		dev_err(rtd->dev, "can't set codec clock %d\n", ret);
-		return ret;
-	}
-
-	/*reset FLL1*/
-	snd_soc_codec_set_pll(wm5102_codec, WM5102_FLL1_REFCLK,
-				ARIZONA_FLL_SRC_NONE,
-				0,
-				0);
-
-	snd_soc_codec_set_pll(wm5102_codec, WM5102_FLL1,
-				ARIZONA_FLL_SRC_NONE,
-				0,
-				0);
-
-	ret = snd_soc_codec_set_pll(wm5102_codec, WM5102_FLL1,
-				ARIZONA_CLK_SRC_MCLK1,
-				25000000,
-				sr * sr_mult);
-
-	if (ret < 0) {
-		dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
-		return ret;
-	}
-
-	ret = snd_soc_codec_set_sysclk(wm5102_codec,
-			ARIZONA_CLK_SYSCLK,
-			ARIZONA_CLK_SRC_FLL1,
-			sr * sr_mult,
-			SND_SOC_CLOCK_IN);
-	if (ret != 0) {
-		dev_err(wm5102_codec->dev, "Failed to set AYNCCLK: %d\n", ret);
-		return ret;
-	}
-
-	ret = snd_soc_codec_set_sysclk(wm5102_codec,
-					ARIZONA_CLK_SYSCLK, 0,
-					sr * sr_mult,
-					SND_SOC_CLOCK_OUT);
-        if (ret < 0) {
-                dev_err(rtd->dev, "can't set OPCLK %d\n", ret);
-        }
-
-	return 0;
+	
+	return byt_wm5102_prepare_and_enable_pll1(codec_dai, params_rate(params));
 }
 
 static int byt_wm5102_quirk_cb(const struct dmi_system_id *id)

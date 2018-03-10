@@ -13,6 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
+#define DEBUG 1
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/i2c.h>
@@ -201,6 +202,7 @@ static void arizona_extcon_do_magic(struct arizona_extcon_info *info,
 	unsigned int mask = 0, val = 0;
 	int ret;
 
+	dev_info(arizona->dev, "Fennec: %s enter\n", __func__);
 	switch (arizona->type) {
 	case WM8280:
 	case WM5110:
@@ -444,6 +446,7 @@ static int arizona_hpdet_read(struct arizona_extcon_info *info)
 	unsigned int val, range;
 	int ret;
 
+	dev_info(arizona->dev, "Fennec: %s enter\n", __func__);
 	ret = regmap_read(arizona->regmap, ARIZONA_HEADPHONE_DETECT_2, &val);
 	if (ret != 0) {
 		dev_err(arizona->dev, "Failed to read HPDET status: %d\n",
@@ -562,6 +565,7 @@ static int arizona_hpdet_do_id(struct arizona_extcon_info *info, int *reading,
 	struct arizona *arizona = info->arizona;
 	int id_gpio = arizona->pdata.hpdet_id_gpio;
 
+	dev_info(arizona->dev, "Fennec: %s enter\n", __func__);
 	/*
 	 * If we're using HPDET for accessory identification we need
 	 * to take multiple measurements, step through them in sequence.
@@ -859,6 +863,7 @@ static void arizona_micd_detect(struct work_struct *work)
 	unsigned int val = 0, lvl;
 	int ret, i, key;
 
+	dev_info(arizona->dev, "Fennec: %s enter\n", __func__);
 	cancel_delayed_work_sync(&info->micd_timeout_work);
 
 	mutex_lock(&info->lock);
@@ -1046,6 +1051,7 @@ static irqreturn_t arizona_micdet(int irq, void *data)
 	struct arizona *arizona = info->arizona;
 	int debounce = arizona->pdata.micd_detect_debounce;
 
+	dev_info(arizona->dev, "Fennec: %s enter\n", __func__);
 	cancel_delayed_work_sync(&info->micd_detect_work);
 	cancel_delayed_work_sync(&info->micd_timeout_work);
 
@@ -1082,6 +1088,7 @@ static irqreturn_t arizona_jackdet(int irq, void *data)
 	bool cancelled_hp, cancelled_mic;
 	int ret, i;
 
+	dev_info(arizona->dev, "Fennec: %s enter\n", __func__);
 	cancelled_hp = cancel_delayed_work_sync(&info->hpdet_work);
 	cancelled_mic = cancel_delayed_work_sync(&info->micd_timeout_work);
 
@@ -1096,6 +1103,7 @@ static irqreturn_t arizona_jackdet(int irq, void *data)
 		present = ARIZONA_JD1_STS;
 	}
 
+	dev_info(arizona->dev, "Fennec: %s - Read jackdet status\n", __func__);
 	ret = regmap_read(arizona->regmap, ARIZONA_AOD_IRQ_RAW_STATUS, &val);
 	if (ret != 0) {
 		dev_err(arizona->dev, "Failed to read jackdet status: %d\n",
@@ -1121,6 +1129,7 @@ static irqreturn_t arizona_jackdet(int irq, void *data)
 	}
 	info->last_jackdet = val;
 
+	dev_info(arizona->dev, "Fennec: %s - Try detect jack\n", __func__);
 	if (info->last_jackdet == present) {
 		dev_info(arizona->dev, "Detected jack\n");
 		info->cable = true;
@@ -1597,6 +1606,7 @@ static int arizona_extcon_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev,
 			"Failed to create sysfs node for hp_impedance %d\n", ret);
 
+	dev_info(arizona->dev, "Fennec: %s - Init successful!\n", __func__);
 	return 0;
 
 err_hpdet:

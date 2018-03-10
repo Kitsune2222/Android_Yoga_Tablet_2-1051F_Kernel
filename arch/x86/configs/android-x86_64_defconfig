@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86_64 4.14.0-rc7 Kernel Configuration
+# Linux/x86 4.14.0-rc7 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -5713,6 +5713,9 @@ CONFIG_LEDS_TRIGGER_TIMER=y
 # CONFIG_LEDS_TRIGGER_TRANSIENT is not set
 # CONFIG_LEDS_TRIGGER_CAMERA is not set
 # CONFIG_LEDS_TRIGGER_PANIC is not set
+CONFIG_SWITCH=m
+CONFIG_SWITCH_GPIO=m
+CONFIG_SWITCH_ARIZONA=m
 # CONFIG_ACCESSIBILITY is not set
 # CONFIG_INFINIBAND is not set
 CONFIG_EDAC_ATOMIC_SCRUB=y

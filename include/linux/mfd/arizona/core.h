@@ -140,8 +140,10 @@ struct arizona {
 	struct regmap_irq_chip_data *aod_irq_chip;
 	struct regmap_irq_chip_data *irq_chip;
 
+	bool hpdet_magic;
 	bool hpdet_clamp;
 	unsigned int hp_ena;
+	unsigned int hp_impedance;
 
 	struct mutex clk_lock;
 	int clk32k_ref;
@@ -151,6 +153,7 @@ struct arizona {
 	bool ctrlif_error;
 
 	struct snd_soc_dapm_context *dapm;
+	struct mutex reg_setting_lock;
 
 	int tdm_width[ARIZONA_MAX_AIF];
 	int tdm_slots[ARIZONA_MAX_AIF];
@@ -176,6 +179,13 @@ int arizona_request_irq(struct arizona *arizona, int irq, char *name,
 			irq_handler_t handler, void *data);
 void arizona_free_irq(struct arizona *arizona, int irq, void *data);
 int arizona_set_irq_wake(struct arizona *arizona, int irq, int on);
+
+extern int arizona_of_get_named_gpio(struct arizona *arizona, const char *prop,
+				     bool mandatory, int *gpio);
+extern int arizona_of_read_u32_array(struct arizona *arizona, const char *prop,
+				     bool mandatory, u32 *data, size_t num);
+extern int arizona_of_read_u32(struct arizona *arizona, const char* prop,
+			       bool mandatory, u32 *data);
 
 #ifdef CONFIG_MFD_WM5102
 int wm5102_patch(struct arizona *arizona);

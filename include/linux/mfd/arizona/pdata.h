@@ -104,6 +104,9 @@ struct arizona_pdata {
 	 */
 	unsigned int max_channels_clocked[ARIZONA_MAX_AIF];
 
+	/** Time in milliseconds to keep wake lock during jack detection */
+	int jd_wake_time;
+	
 	/** GPIO5 is used for jack detection */
 	bool jd_gpio5;
 
@@ -122,6 +125,9 @@ struct arizona_pdata {
 	/** GPIO used for mic isolation with HPDET */
 	int hpdet_id_gpio;
 
+	/** Callback notifying HPDET result */
+	void (*hpdet_cb)(unsigned int measurement);
+	
 	/** Channel to use for headphone detection */
 	unsigned int hpdet_channel;
 
@@ -149,6 +155,12 @@ struct arizona_pdata {
 	/** Force MICBIAS on for mic detect */
 	bool micd_force_micbias;
 
+	/** Declare an open circuit as a 4 pole jack */
+	bool micd_open_circuit_declare;
+
+	/** Delay between jack detection and MICBIAS ramp */
+	int init_mic_delay;
+	
 	/** Mic detect level parameters */
 	const struct arizona_micd_range *micd_ranges;
 	int num_micd_ranges;

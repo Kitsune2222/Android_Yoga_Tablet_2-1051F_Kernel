@@ -379,6 +379,7 @@ static void arizona_stop_mic(struct arizona_extcon_info *info)
 	struct arizona *arizona = info->arizona;
 	const char *widget = micbias_name[info->current_micbias];
 	struct snd_soc_dapm_context *dapm = arizona->dapm;
+	struct snd_soc_component *component = snd_soc_dapm_to_component(dapm);
 	bool change;
 	int ret;
 
@@ -387,24 +388,20 @@ static void arizona_stop_mic(struct arizona_extcon_info *info)
 				 ARIZONA_MICD_ENA, 0,
 				 &change);
 
-	mutex_lock(&dapm->card->dapm_mutex);
-
-	ret = snd_soc_dapm_disable_pin(dapm, widget);
+	dev_info(arizona->dev, "Fennec: %s l1\n", __func__);
+	ret = snd_soc_component_disable_pin(component, widget);
 	if (ret != 0)
 		dev_warn(arizona->dev,
 			 "Failed to disable %s: %d\n",
 			 widget, ret);
 
-	mutex_unlock(&dapm->card->dapm_mutex);
-
 	snd_soc_dapm_sync(dapm);
 
 	if (info->micd_reva) {
-        mutex_lock(&arizona->reg_setting_lock);
+		dev_info(arizona->dev, "Fennec: %s if micd reva\n", __func__);
 		regmap_write(arizona->regmap, 0x80, 0x3);
 		regmap_write(arizona->regmap, 0x294, 2);
 		regmap_write(arizona->regmap, 0x80, 0x0);
-		mutex_unlock(&arizona->reg_setting_lock);
 	}
 
 	ret = regulator_allow_bypass(info->micvdd, true);
@@ -414,10 +411,12 @@ static void arizona_stop_mic(struct arizona_extcon_info *info)
 	}
 
 	if (change) {
+		dev_info(arizona->dev, "Fennec: %s if change\n", __func__);
 		regulator_disable(info->micvdd);
 		pm_runtime_mark_last_busy(info->dev);
 		pm_runtime_put_autosuspend(info->dev);
 	}
+	dev_info(arizona->dev, "Fennec: %s end\n", __func__);
 }
 
 static struct {

@@ -641,11 +641,11 @@ static irqreturn_t arizona_hpdet_irq(int irq, void *data)
 	mutex_lock(&info->lock);
 
 	/* If we got a spurious IRQ for some reason then ignore it */
-	if (!info->hpdet_active) {
-		dev_warn(arizona->dev, "Spurious HPDET IRQ\n");
-		mutex_unlock(&info->lock);
-		return IRQ_NONE;
-	}
+//	if (!info->hpdet_active) {
+//		dev_warn(arizona->dev, "Spurious HPDET IRQ\n");
+//		mutex_unlock(&info->lock);
+//		return IRQ_NONE;
+//	}
 
 	/* If the cable was removed while measuring ignore the result */
 	if (!info->cable) {
@@ -669,6 +669,7 @@ static irqreturn_t arizona_hpdet_irq(int irq, void *data)
 			   ARIZONA_HP_IMPEDANCE_RANGE_MASK | ARIZONA_HP_POLL,
 			   0);
 
+	dev_info(arizona->dev, "Fennec: %s arizona_hpdet_do_id\n", __func__);
 	ret = arizona_hpdet_do_id(info, &reading, &mic);
 	if (ret == -EAGAIN) {
         dev_info(arizona->dev, "%s, goto out...\n", __func__);
@@ -689,6 +690,7 @@ static irqreturn_t arizona_hpdet_irq(int irq, void *data)
         dev_info(arizona->dev, "%s, switch_set_state to BIT_HEADSET_NO_MIC\n", __func__);
     }
 
+	dev_info(arizona->dev, "Fennec: %s end\n", __func__);
 done:
 	/* Reset back to starting range */
 	regmap_update_bits(arizona->regmap,

@@ -292,29 +292,25 @@ static void arizona_extcon_pulse_micbias(struct arizona_extcon_info *info)
 	int micbias = arizona_extcon_get_micbias(info);
 	const char *widget = micbias_name[micbias];
 	struct snd_soc_dapm_context *dapm = arizona->dapm;
+	struct snd_soc_component *component = snd_soc_dapm_to_component(dapm);
 	int ret;
 
 	dev_info(arizona->dev, "%s enter, pulse %s\n", __func__, widget);
-	mutex_lock(&dapm->card->dapm_mutex);
-	ret = snd_soc_dapm_force_enable_pin(dapm, widget);
+	ret = snd_soc_component_force_enable_pin(component, widget);
 	if (ret != 0)
 		dev_warn(arizona->dev, "Failed to enable %s: %d\n",
 			 widget, ret);
 
 	info->current_micbias = micbias;
-	mutex_unlock(&dapm->card->dapm_mutex);
 
 	snd_soc_dapm_sync(dapm);
 
 	if (!arizona->pdata.micd_force_micbias) {
-		mutex_lock(&dapm->card->dapm_mutex);
 
-		ret = snd_soc_dapm_disable_pin(arizona->dapm, widget);
+		ret = snd_soc_component_disable_pin(component, widget);
 		if (ret != 0)
 			dev_warn(arizona->dev, "Failed to disable %s: %d\n",
 				 widget, ret);
-
-		mutex_unlock(&dapm->card->dapm_mutex);
 
 		snd_soc_dapm_sync(dapm);
 	}
@@ -719,6 +715,7 @@ done:
 
 	info->hpdet_done = true;
 
+dev_info(arizona->dev, "Fennec: %s, Done!\n", __func__);
 out:
 	mutex_unlock(&info->lock);
 
@@ -788,6 +785,7 @@ static void arizona_start_hpdet_acc_id(struct arizona_extcon_info *info)
 	bool mic;
 	int ret;
 
+	dev_info(arizona->dev, "Fennec: arizona_start_hpdet_acc_id\n");
 	dev_dbg(arizona->dev, "Starting identification via HPDET\n");
 
 	/* Make sure we keep the device enabled during the measurement */
@@ -824,6 +822,7 @@ static void arizona_start_hpdet_acc_id(struct arizona_extcon_info *info)
 	return;
 
 err:
+	dev_info(arizona->dev, "Fennec: arizona_start_hpdet_acc_id err\n");
 	regmap_update_bits(arizona->regmap, ARIZONA_ACCESSORY_DETECT_MODE_1,
 			   ARIZONA_ACCDET_MODE_MASK, ARIZONA_ACCDET_MODE_MIC);
 	/* Just report headphone */
@@ -1096,13 +1095,13 @@ static irqreturn_t arizona_jackdet(int irq, void *data)
 	pm_runtime_get_sync(info->dev);
 	mutex_lock(&info->lock);
 
-	if (arizona->pdata.jd_gpio5) {
+//	if (arizona->pdata.jd_gpio5) {
 		mask = ARIZONA_MICD_CLAMP_STS;
 		present = 0;
-	} else {
-		mask = ARIZONA_JD1_STS;
-		present = ARIZONA_JD1_STS;
-	}
+//	} else {
+//		mask = ARIZONA_JD1_STS;
+//		present = ARIZONA_JD1_STS;
+//	}
 
 	dev_info(arizona->dev, "Fennec: %s - Read jackdet status\n", __func__);
 	ret = regmap_read(arizona->regmap, ARIZONA_AOD_IRQ_RAW_STATUS, &val);

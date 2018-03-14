@@ -492,6 +492,7 @@ static int arizona_hpdet_read(struct arizona_extcon_info *info)
 					   ARIZONA_HP_IMPEDANCE_RANGE_SHIFT);
 			return -EAGAIN;
 		}
+		dev_info(arizona->dev, "Fennec: %s 1\n", __func__);
 
 		/* If we go out of range report top of range */
 		if (val < arizona_hpdet_b_ranges[range].threshold ||
@@ -640,6 +641,7 @@ static irqreturn_t arizona_hpdet_irq(int irq, void *data)
 //	if (!info->hpdet_active) {
 //		dev_warn(arizona->dev, "Spurious HPDET IRQ\n");
 //		mutex_unlock(&info->lock);
+//		dev_warn(arizona->dev, "Spurious HPDET IRQ irq_none\n");
 //		return IRQ_NONE;
 //	}
 

@@ -638,12 +638,12 @@ static irqreturn_t arizona_hpdet_irq(int irq, void *data)
 	mutex_lock(&info->lock);
 
 	/* If we got a spurious IRQ for some reason then ignore it */
-//	if (!info->hpdet_active) {
-//		dev_warn(arizona->dev, "Spurious HPDET IRQ\n");
-//		mutex_unlock(&info->lock);
-//		dev_warn(arizona->dev, "Spurious HPDET IRQ irq_none\n");
-//		return IRQ_NONE;
-//	}
+	if (!info->hpdet_active) {
+		dev_warn(arizona->dev, "Spurious HPDET IRQ\n");
+		mutex_unlock(&info->lock);
+		dev_warn(arizona->dev, "Spurious HPDET IRQ irq_none\n");
+		return IRQ_NONE;
+	}
 
 	/* If the cable was removed while measuring ignore the result */
 	if (!info->cable) {

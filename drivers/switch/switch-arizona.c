@@ -160,19 +160,25 @@ static ssize_t arizona_extcon_switch_store(struct device *dev,
 	struct arizona_extcon_info *info = platform_get_drvdata(pdev);
     long val;
 
+	pr_info("Fennec: arizona_extcon_switch_store(), start\n");
 	int err = kstrtol(buf, 10, &val);
 	if (err)
 		return err;
 
+	pr_info("Fennec: arizona_extcon_switch_store(), lev 1\n");
     info->hp_switch = (val!=0);
     pm_runtime_get_sync(info->arizona->dev);
+	pr_info("Fennec: arizona_extcon_switch_store(), lev 2\n");
     mutex_lock(&info->arizona->reg_setting_lock);
-    if (info->hp_switch)
+	pr_info("Fennec: arizona_extcon_switch_store(), lev 3\n");
+    if (info->hp_switch) {
+		pr_info("Fennec: arizona_extcon_switch_store(), IF hp_switch\n");
         regmap_update_bits(info->arizona->regmap, ARIZONA_JACK_DETECT_ANALOGUE,
             ARIZONA_JD1_ENA, ARIZONA_JD1_ENA);
-    else
+	} else {
+		pr_info("Fennec: arizona_extcon_switch_store(), else\n");
         regmap_update_bits(info->arizona->regmap, ARIZONA_JACK_DETECT_ANALOGUE,
-            ARIZONA_JD1_ENA, 0);
+            ARIZONA_JD1_ENA, 0); }
     mutex_unlock(&info->arizona->reg_setting_lock);
     pm_runtime_put_autosuspend(info->arizona->dev);
     pr_info("arizona_extcon_switch_store(), switch:%d\n", info->hp_switch);
@@ -1496,8 +1502,11 @@ static int arizona_extcon_probe(struct platform_device *pdev)
 	 * If we have a clamp use it, activating in conjunction with
 	 * GPIO5 if that is connected for jack detect operation.
 	 */
+	dev_info(arizona->dev, "Fennec: %s - info->micd_clamp start\n", __func__);
 	if (info->micd_clamp) {
+		dev_info(arizona->dev, "Fennec: %s - info->micd_clamp\n", __func__);
 		if (arizona->pdata.jd_gpio5) {
+			dev_info(arizona->dev, "Fennec: %s - arizona->pdata.jd_gpio5\n", __func__);
 			/* Put the GPIO into input mode with optional pull */
 			val = 0xc101;
 			if (arizona->pdata.jd_gpio5_nopull)
@@ -1510,11 +1519,13 @@ static int arizona_extcon_probe(struct platform_device *pdev)
 					   ARIZONA_MICD_CLAMP_CONTROL,
 					   ARIZONA_MICD_CLAMP_MODE_MASK, 0x9);
 		} else {
+			dev_info(arizona->dev, "Fennec: %s - else arizona->pdata.jd_gpio5\n", __func__);
 			regmap_update_bits(arizona->regmap,
 					   ARIZONA_MICD_CLAMP_CONTROL,
 					   ARIZONA_MICD_CLAMP_MODE_MASK, 0x4);
 		}
 
+		dev_info(arizona->dev, "Fennec: %s - 142\n", __func__);
 		regmap_update_bits(arizona->regmap,
 				   ARIZONA_JACK_DETECT_DEBOUNCE,
 				   ARIZONA_MICD_CLAMP_DB,

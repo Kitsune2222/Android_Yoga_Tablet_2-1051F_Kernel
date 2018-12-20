@@ -6452,6 +6452,11 @@ CONFIG_IIO_ST_SENSORS_CORE=m
 #
 
 #
+# E-Compass sensors
+#
+CONFIG_SENSOR_LSM303D=m
+
+#
 # Frequency Synthesizers DDS/PLL
 #
 
